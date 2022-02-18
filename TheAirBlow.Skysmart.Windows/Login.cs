@@ -1,20 +1,37 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 using System.Windows.Forms;
+using TheAirBlow.Skysmart.Library;
 
 namespace TheAirBlow.Skysmart.Windows
 {
-    public partial class Form1 : Form
+    public partial class Login : Form
     {
-        public Form1()
+        public Login() => InitializeComponent();
+
+        /// <summary>
+        /// Exit
+        /// </summary>
+        private void button2_Click(object sender, EventArgs e)
+            => Application.Exit();
+
+        /// <summary>
+        /// Login
+        /// </summary>
+        private void button1_Click(object sender, EventArgs e)
         {
-            InitializeComponent();
+            try {
+                WebHelper.Authenticate(textBox2.Text, textBox1.Text);
+                File.WriteAllText("token.txt", WebHelper.Token);
+                new Main().Show();
+                Close();
+            } catch (Exception ex) {
+                MessageBox.Show("Не удалось войти в аккаунт SkySmart.\nПроверьте данные, " +
+                                "которые вы ввели, а также связь с Интернетом." +
+                                $"\n{ex.Message}", 
+                    "Ошибка во время входа!", MessageBoxButtons.OK, 
+                    MessageBoxIcon.Error);
+            }
         }
     }
 }
