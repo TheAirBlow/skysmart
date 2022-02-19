@@ -11,8 +11,8 @@
 3) Откройте программу и следуйте инструкциям
 
 ## 🔷 Скриншоты
-![изображение](https://user-images.githubusercontent.com/68467762/154795838-c3566b93-6f66-491a-8a15-2153794a008e.png)
-![изображение](https://user-images.githubusercontent.com/68467762/154795927-eadd0871-2683-40f6-b688-ac0051841606.png)
+![изображение](https://user-images.githubusercontent.com/68467762/154814854-42592396-5f44-4c43-b86b-017293de6cef.png)
+![изображение](https://user-images.githubusercontent.com/68467762/154814847-19693cb1-53a3-4f5f-9e98-d207822e9eff.png)
 
 ## 🔶 Последние изменения
 Все changelog'и [тут](https://github.com/theairblow/skysmart/releases)
