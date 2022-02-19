@@ -10,12 +10,12 @@
 2) Установите .NET Framework v4.7.2
 3) Откройте программу и следуйте инструкциям
 
-## 🔶 Последние изменения
-Все changelog'и [тут](https://github.com/theairblow/skysmart/releases)
-
 ## 🔷 Скриншоты
 ![изображение](https://user-images.githubusercontent.com/68467762/154795838-c3566b93-6f66-491a-8a15-2153794a008e.png)
 ![изображение](https://user-images.githubusercontent.com/68467762/154795927-eadd0871-2683-40f6-b688-ac0051841606.png)
+
+## 🔶 Последние изменения
+Все changelog'и [тут](https://github.com/theairblow/skysmart/releases)
 
 ## 🤔 Что делать, если не сработало или выдало ошибку?
 Напишите мне на почту: [ссылка на мой сайт](https://theairblow.github.io/)
