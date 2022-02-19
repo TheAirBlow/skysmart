@@ -117,4 +117,7 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="richTextBox1.Text" xml:space="preserve">
+    <value>Нам нужны ваши логин и пароль для того, чтобы иметь доступ к API. Без него мы не сможем получить необходимые данные для получения ответов. После входа токен от аккаунта (не логин и пароль в чистом виде) будут сохранены в файл token.txt в папке с программой. </value>
+  </data>
 </root>

@@ -26,18 +26,11 @@ namespace TheAirBlow.Skysmart.Console
             var code = AnsiConsole.Ask<string>("Код Задания:");
             AnsiConsole.MarkupLine("[yellow]Подождите, загрузка UUID заданий...[/]");
             var uuids = WebHelper.GetAnswerXmlsUuids(code);
-            for (var i = 0; i < uuids.Length; i++) {
-                var uuid = uuids[i];
-                var xml = WebHelper.GetAnswerXml(uuid);
-                var name = "(Unable to find)";
-                var root = xml["div"];
-                if (root.SelectSingleNode("vim-instruction") != null)
-                    name = root["vim-instruction"]?.InnerText;
-                else if (root.SelectSingleNode("vim-content-section-titl") != null)
-                    name = root["vim-content-section-title"]?.InnerText;
-                else if (root.SelectSingleNode("vim-text") != null)
-                    name = root["vim-text"]?.InnerText;
-                AnsiConsole.MarkupLine($"[green]Задание №{i}: {name}[/]");
+            for (var i = 0; i < uuids.Meta.Uuids.Length; i++) {
+                var uuid = uuids.Meta.Uuids[i];
+                var xml = WebHelper.GetAnswerXml(uuid, uuids);
+                var root = xml.XmlContent["div"];
+                AnsiConsole.MarkupLine($"[green]Задание №{i + 1}: {xml.Title}[/]");
                 #region Test Question
                 foreach (XmlNode sus in root.SelectNodes("//vim-test")) {
                     var select = sus?.FirstChild;

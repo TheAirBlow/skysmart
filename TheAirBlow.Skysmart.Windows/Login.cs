@@ -13,7 +13,7 @@ namespace TheAirBlow.Skysmart.Windows
         /// Exit
         /// </summary>
         private void button2_Click(object sender, EventArgs e)
-            => Application.Exit();
+            => Environment.Exit(0);
 
         /// <summary>
         /// Login
@@ -33,5 +33,8 @@ namespace TheAirBlow.Skysmart.Windows
                     MessageBoxIcon.Error);
             }
         }
+
+        private void Login_Load(object sender, EventArgs e)
+            => Closed += (_, _) => Environment.Exit(0);
     }
 }
