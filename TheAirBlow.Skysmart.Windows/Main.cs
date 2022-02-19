@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
@@ -39,7 +40,7 @@ namespace TheAirBlow.Skysmart.Windows
             comboBox1.Items.Clear();
             checkedListBox1.Items.Clear();
 
-            _thread = new Thread(() => {
+            _thread = new(() => {
                 try {
                     WebHelper.ExerciseMeta uuids;
                     try { uuids = WebHelper.GetAnswerXmlsUuids(textBox1.Text); } 
@@ -56,6 +57,7 @@ namespace TheAirBlow.Skysmart.Windows
                     Invoke(() => {
                         panel1.Enabled = true;
                         panel1.Visible = true;
+                        textBox1.Enabled = false;
                     });
                     Invoke(() => {
                         progressBar1.Maximum = uuids.Meta.Uuids.Length + 1;
@@ -77,6 +79,26 @@ namespace TheAirBlow.Skysmart.Windows
                         for (var b = 0; b < list.Count; b++) {
                             var sus = list[b];
                             switch (sus.Name) {
+                                #region Unity Game
+                                case "vim-iframe":
+                                    ans.Add("Обнаружено видео или игра, решить мы это не можем.");
+                                    break;
+                                #endregion
+                                #region Row Question
+                                case "vim-groups":
+                                    try {
+                                        foreach (XmlNode vim in sus?.ChildNodes)
+                                            ans.Add($"Сопоставте {WebHelper.Cleanup(Encoding.ASCII.GetString(Convert.FromBase64String(vim.ChildNodes[0].Attributes?["text"].InnerText)))}" +
+                                                    $" с {WebHelper.Cleanup(Encoding.ASCII.GetString(Convert.FromBase64String(vim.ChildNodes[1].Attributes?["text"].InnerText)))}");
+                                    } catch (Exception ex) {
+                                        MessageBox.Show("Не удалось решить математический пример.\n" +
+                                                        $"UUID: {uuid}\nСообщите об этом разработчику.",
+                                            "Ошибка во время решения!", MessageBoxButtons.OK,
+                                            MessageBoxIcon.Error);
+                                        File.WriteAllText($"{uuid}.xml", root.InnerXml);
+                                    }
+                                    break;
+                                #endregion
                                 #region Math Question
                                 case "vim-math":
                                     try {
@@ -96,8 +118,14 @@ namespace TheAirBlow.Skysmart.Windows
                                 #region Test Question
                                 case "vim-test":
                                     try {
-                                        var select = sus?.FirstChild;
-                                        ans.Add($"Тест: {select["vim-test-answers"]?.ChildNodes?[0].InnerText}");
+                                        foreach (XmlNode vim in sus?.ChildNodes) {
+                                            // Maybe there would be tests with multiple answers?
+                                            var test = new List<string>();
+                                            foreach (XmlNode item in vim?["vim-test-answers"].SelectNodes("*[@correct='true']"))
+                                                test.Add(item.InnerText);
+                                            var name = vim?["vim-test-question-text"].FirstChild.InnerText ?? "Тест:";
+                                            ans.Add($"{name} {string.Join(", ", test)}");
+                                        }
                                     } catch (Exception ex) {
                                         MessageBox.Show("Не удалось решить тест.\n" +
                                                         $"UUID: {uuid}\nСообщите об этом разработчику.",
@@ -149,13 +177,27 @@ namespace TheAirBlow.Skysmart.Windows
                                 case "vim-dnd-group":
                                     try {
                                         var drags = sus["vim-dnd-group-drags"];
-                                        foreach (XmlNode item in sus["vim-dnd-group-groups"]!) {
+                                        foreach (XmlNode item in sus["vim-dnd-group-groups"]!.ChildNodes) {
                                             var ids = item.Attributes?["drag-ids"].InnerText.Split(',');
                                             foreach (var id in ids)
                                                 ans.Add(
                                                     $"Перетащи {drags?.SelectSingleNode($"//*[@answer-id='{id}']").InnerText}" +
                                                     $" в {item.FirstChild.InnerText}");
                                         }
+                                    } catch (Exception ex) {
+                                        MessageBox.Show("Не удалось решить Drag&Drop задание.\n" +
+                                                        $"UUID: {uuid}\nСообщите об этом разработчику.",
+                                            "Ошибка во время решения!", MessageBoxButtons.OK,
+                                            MessageBoxIcon.Error);
+                                        File.WriteAllText($"{uuid}.xml", root.InnerXml);
+                                    }
+                                    break;
+                                #endregion
+                                #region Stike Out Question
+                                case "vim-strike-out":
+                                    try {
+                                        var strike = (from XmlNode item in sus.SelectNodes("*[@striked='true']") select item.InnerText).ToList();
+                                        ans.Add($"Вычеркни {string.Join(", ", strike)}");
                                     } catch (Exception ex) {
                                         MessageBox.Show("Не удалось решить Drag&Drop задание.\n" +
                                                         $"UUID: {uuid}\nСообщите об этом разработчику.",
@@ -173,8 +215,32 @@ namespace TheAirBlow.Skysmart.Windows
                                         for (var h = 0; h < nodes.Count; h++) {
                                             var item = nodes[h];
                                             var ids = item.Attributes?["drag-ids"].InnerText.Split(',');
-                                            ans.Add($"Перетащи {drags?.SelectSingleNode($"//*[@answer-id='{ids[0]}']").InnerText}" +
+                                            var list2 = new List<string>();
+                                            foreach (var id in ids)
+                                                list2.Add(drags?.SelectSingleNode($"//*[@answer-id='{id}']").InnerText);
+                                            ans.Add($"Перетащи {string.Join(" /ИЛИ/ ", list2)}" +
                                                     $" в \"{item.ParentNode.InnerText}\"");
+                                        }
+                                    } catch (Exception ex) {
+                                        MessageBox.Show("Не удалось решить Drag&Drop задание.\n" +
+                                                        $"UUID: {uuid}\nСообщите об этом разработчику.",
+                                            "Ошибка во время решения!", MessageBoxButtons.OK,
+                                            MessageBoxIcon.Error);
+                                        File.WriteAllText($"{uuid}.xml", root.InnerXml);
+                                    }
+                                    break;
+                                #endregion
+                                #region Image Drag&Drop Question
+                                case "vim-dnd-image-set":
+                                    try {
+                                        var drags = sus["vim-dnd-image-set-drags"];
+                                        for (var t = 0; t < sus["vim-dnd-image-set-images"]!.ChildNodes.Count; t++) {
+                                            var item = sus["vim-dnd-image-set-images"]!.ChildNodes[t];
+                                            var ids = item.Attributes?["drag-ids"].InnerText.Split(',');
+                                            foreach (var id in ids)
+                                                ans.Add(
+                                                    $"Перетащи {drags?.SelectSingleNode($"//*[@answer-id='{id}']").InnerText}" +
+                                                    $" к {t} картинке");
                                         }
                                     } catch (Exception ex) {
                                         MessageBox.Show("Не удалось решить Drag&Drop задание.\n" +
@@ -201,11 +267,15 @@ namespace TheAirBlow.Skysmart.Windows
                     Invoke(() => {
                         panel1.Enabled = false;
                         panel1.Visible = false;
+                        button3.Enabled = false;
+                        textBox1.Enabled = true;
+                        button4.Enabled = _comboBoxItems.Count != 1;
                     });
                 } catch (Exception ex) {
                     Invoke(() => {
                         panel1.Enabled = true;
                         panel1.Visible = true;
+                        textBox1.Enabled = true;
                         label2.Text = $"Ошибка во время решения, ожидание команд...";
                         progressBar1.Style = ProgressBarStyle.Marquee;
                     });
@@ -233,6 +303,9 @@ namespace TheAirBlow.Skysmart.Windows
             textBox3.Text = _xmls[comboBox1.SelectedIndex].IsRandom ? "Да" : "Нет";
             textBox4.Text = _xmls[comboBox1.SelectedIndex].ExerciseIdentifier.ToString();
             textBox5.Text = _xmls[comboBox1.SelectedIndex].IsInteractive ? "Да" : "Нет";
+            
+            button3.Enabled = comboBox1.SelectedIndex - 1 != -1;
+            button4.Enabled = comboBox1.SelectedIndex + 1 != comboBox1.Items.Count;
         }
 
         /// <summary>
@@ -247,6 +320,7 @@ namespace TheAirBlow.Skysmart.Windows
                 comboBox1.Items.Clear();
                 // ReSharper disable once CoVariantArrayConversion
                 comboBox1.Items.AddRange(_comboBoxItems.ToArray());
+                comboBox1.SelectedIndex = 0;
                 _comboBoxItems.Clear();
             };
             Closed += (_, _) => Environment.Exit(0);
@@ -263,6 +337,18 @@ namespace TheAirBlow.Skysmart.Windows
                 Hide();
             }
             
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            if (comboBox1.SelectedIndex - 1 != -1)
+                comboBox1.SelectedIndex--;
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            if (comboBox1.SelectedIndex + 1 != comboBox1.Items.Count)
+                comboBox1.SelectedIndex++;
         }
     }
 }

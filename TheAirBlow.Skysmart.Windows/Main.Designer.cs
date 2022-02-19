@@ -42,6 +42,8 @@ namespace TheAirBlow.Skysmart.Windows
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.panel1 = new System.Windows.Forms.Panel();
             this.label2 = new System.Windows.Forms.Label();
+            this.button4 = new System.Windows.Forms.Button();
+            this.button3 = new System.Windows.Forms.Button();
             this.checkedListBox1 = new System.Windows.Forms.CheckedListBox();
             this.comboBox1 = new System.Windows.Forms.ComboBox();
             this.richTextBox2 = new System.Windows.Forms.RichTextBox();
@@ -133,6 +135,8 @@ namespace TheAirBlow.Skysmart.Windows
             // groupBox1
             // 
             this.groupBox1.Controls.Add(this.panel1);
+            this.groupBox1.Controls.Add(this.button4);
+            this.groupBox1.Controls.Add(this.button3);
             this.groupBox1.Controls.Add(this.checkedListBox1);
             this.groupBox1.Controls.Add(this.comboBox1);
             this.groupBox1.Controls.Add(this.richTextBox2);
@@ -148,7 +152,7 @@ namespace TheAirBlow.Skysmart.Windows
             // 
             this.panel1.Controls.Add(this.progressBar1);
             this.panel1.Controls.Add(this.label2);
-            this.panel1.Location = new System.Drawing.Point(15, 24);
+            this.panel1.Location = new System.Drawing.Point(17, 25);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(637, 270);
             this.panel1.TabIndex = 9;
@@ -162,9 +166,33 @@ namespace TheAirBlow.Skysmart.Windows
             this.label2.Text = "Ожидание команд...";
             this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
+            // button4
+            // 
+            this.button4.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (204)));
+            this.button4.Location = new System.Drawing.Point(622, 25);
+            this.button4.Name = "button4";
+            this.button4.Size = new System.Drawing.Size(30, 29);
+            this.button4.TabIndex = 21;
+            this.button4.Text = ">";
+            this.button4.UseVisualStyleBackColor = true;
+            this.button4.Click += new System.EventHandler(this.button4_Click);
+            // 
+            // button3
+            // 
+            this.button3.Enabled = false;
+            this.button3.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (204)));
+            this.button3.Location = new System.Drawing.Point(17, 25);
+            this.button3.Name = "button3";
+            this.button3.Size = new System.Drawing.Size(30, 29);
+            this.button3.TabIndex = 20;
+            this.button3.Text = "<";
+            this.button3.UseVisualStyleBackColor = true;
+            this.button3.Click += new System.EventHandler(this.button3_Click);
+            // 
             // checkedListBox1
             // 
             this.checkedListBox1.FormattingEnabled = true;
+            this.checkedListBox1.HorizontalScrollbar = true;
             this.checkedListBox1.Location = new System.Drawing.Point(17, 59);
             this.checkedListBox1.Name = "checkedListBox1";
             this.checkedListBox1.Size = new System.Drawing.Size(635, 235);
@@ -173,9 +201,9 @@ namespace TheAirBlow.Skysmart.Windows
             // comboBox1
             // 
             this.comboBox1.FormattingEnabled = true;
-            this.comboBox1.Location = new System.Drawing.Point(17, 25);
+            this.comboBox1.Location = new System.Drawing.Point(53, 25);
             this.comboBox1.Name = "comboBox1";
-            this.comboBox1.Size = new System.Drawing.Size(635, 28);
+            this.comboBox1.Size = new System.Drawing.Size(563, 28);
             this.comboBox1.TabIndex = 3;
             this.comboBox1.SelectedIndexChanged += new System.EventHandler(this.comboBox1_SelectedIndexChanged);
             // 
@@ -386,6 +414,10 @@ namespace TheAirBlow.Skysmart.Windows
             this.ResumeLayout(false);
             this.PerformLayout();
         }
+
+        private System.Windows.Forms.Button button4;
+
+        private System.Windows.Forms.Button button3;
 
         private System.Windows.Forms.ProgressBar progressBar1;
 

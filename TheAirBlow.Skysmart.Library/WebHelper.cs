@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Xml;
@@ -126,13 +128,27 @@ namespace TheAirBlow.Skysmart.Library
             client.Headers.Add(HttpRequestHeader.Authorization, $"Bearer {Token}");
             var answer = client.DownloadString(Xml + uuid);
             var json = JsonConvert.DeserializeObject<ExerciseXml>(answer);
-            var content = json.Content;
-            // Replace all of the shit and make it readable
+            var content = Cleanup(json.Content);
+            var doc = new XmlDocument();
+            doc.LoadXml(content);
+            json.XmlContent = doc;
+            json.Title = uuids.Meta.StepsMeta[uuid].Title;
+            json.Uuid = uuid;
+            return json;
+        }
+
+        /// <summary>
+        /// Cleanup a string
+        /// </summary>
+        /// <param name="content">Content</param>
+        /// <returns>Cleaned up string</returns>
+        public static string Cleanup(string content)
+        {
             content = content.Replace("~", "");
             content = content.Replace("\r", "");
             content = content.Replace("\n", "");
-            content = content.Replace("\\gt", ">");
-            content = content.Replace("\\lt", "<");
+            content = content.Replace("\\gt", "&gt;");
+            content = content.Replace("\\lt", "&lt;");
             content = content.Replace("\\pm", "⊥");
             content = content.Replace("\\perp", "");
             content = content.Replace("\\larr", "←");
@@ -146,9 +162,6 @@ namespace TheAirBlow.Skysmart.Library
             content = content.Replace("\\rightarrow", "→");
             content = content.Replace("\\pi", "π");
             content = content.Replace("\\infty", "∞");
-            
-            foreach (var c in new[] { "^", "+", "=", ":" })
-                content = content.Replace($"{c}", $" {c} ");
 
             foreach (Match i in new Regex("mathrm{(.*?)}").Matches(content))
                 content = content.Replace("\\" + i.Value, Regex.Replace(
@@ -157,19 +170,12 @@ namespace TheAirBlow.Skysmart.Library
             foreach (Match i in new Regex("dfrac{(.*?)}{(.*?)}").Matches(content))
                 content = content.Replace("\\" + i.Value, Regex.Replace(
                     i.Value, "(?:dfrac{)(.*?)(?:}{)(.*?)(?:})",
-                    "$1 / $2"));
+                    "$1/$2 (дробь)"));
             
             foreach (Match i in new Regex("sqrt{(.*?)}").Matches(content))
                 content = content.Replace("\\" + i.Value, Regex.Replace(
                     i.Value, "(?:sqrt){(.*?)(?:})", "√$1"));
-            
-            // Return the XML document
-            var doc = new XmlDocument();
-            doc.LoadXml(content);
-            json.XmlContent = doc;
-            json.Title = uuids.Meta.StepsMeta[uuid].Title;
-            json.Uuid = uuid;
-            return json;
+            return content;
         }
     }
 }
