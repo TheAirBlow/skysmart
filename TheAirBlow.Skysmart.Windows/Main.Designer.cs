@@ -373,6 +373,7 @@ namespace TheAirBlow.Skysmart.Windows
             this.Controls.Add(this.button1);
             this.Controls.Add(this.textBox1);
             this.Controls.Add(this.label1);
+            this.Icon = ((System.Drawing.Icon) (resources.GetObject("$this.Icon")));
             this.Name = "Main";
             this.Text = "SkySmart: Ответы";
             this.Load += new System.EventHandler(this.Main_Load);

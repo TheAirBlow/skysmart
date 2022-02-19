@@ -25,8 +25,8 @@ namespace TheAirBlow.Skysmart.Windows
         /// </summary>
         private void button2_Click(object sender, EventArgs e)
         {
-            File.WriteAllText("token.txt", "");
-            Environment.Exit(0);
+            new Login().Show();
+            Hide();
         }
 
         /// <summary>
@@ -41,7 +41,15 @@ namespace TheAirBlow.Skysmart.Windows
 
             _thread = new Thread(() => {
                 try {
-                    var uuids = WebHelper.GetAnswerXmlsUuids(textBox1.Text);
+                    WebHelper.ExerciseMeta uuids;
+                    try { uuids = WebHelper.GetAnswerXmlsUuids(textBox1.Text); } 
+                    catch {
+                        MessageBox.Show("Комнаты с таким ID не существует." +
+                                        "\nПроверьте введенную вами информацию.", 
+                            "Ошибка во время решения!", MessageBoxButtons.OK, 
+                            MessageBoxIcon.Error);
+                        return;
+                    }
                     textBox6.Text = uuids.Meta.Subject.Title;
                     textBox7.Text = $"{uuids.Meta.TeacherInformation.Surname} " +
                                     $"{uuids.Meta.TeacherInformation.Name}";
@@ -50,13 +58,13 @@ namespace TheAirBlow.Skysmart.Windows
                         panel1.Visible = true;
                     });
                     Invoke(() => {
-                        progressBar1.Maximum = uuids.Meta.Uuids.Length;
+                        progressBar1.Maximum = uuids.Meta.Uuids.Length + 1;
                         progressBar1.Style = ProgressBarStyle.Blocks;
                         progressBar1.Value = 0;
                     });
                     for (var i = 0; i < uuids.Meta.Uuids.Length; i++) {
                         Invoke(() => {
-                            label2.Text = $"Решаем задание {i + 1}/{uuids.Meta.Uuids.Length + 1}";
+                            label2.Text = $"Решаем задание {i + 1}/{uuids.Meta.Uuids.Length}";
                             progressBar1.Increment(1);
                         });
                         var uuid = uuids.Meta.Uuids[i];
@@ -69,14 +77,27 @@ namespace TheAirBlow.Skysmart.Windows
                         for (var b = 0; b < list.Count; b++) {
                             var sus = list[b];
                             switch (sus.Name) {
+                                #region Math Question
+                                case "vim-math":
+                                    try {
+                                        var id = sus.Attributes?["id"].InnerText;
+                                        var input = root.SelectSingleNode($"//*[@id='{id.Replace("math", "MI")}']");
+                                        if (input != null)
+                                            ans.Add($"{sus.InnerText}{input.InnerText}");
+                                    } catch (Exception ex) {
+                                        MessageBox.Show("Не удалось решить математический пример.\n" +
+                                                        $"UUID: {uuid}\nСообщите об этом разработчику.",
+                                            "Ошибка во время решения!", MessageBoxButtons.OK,
+                                            MessageBoxIcon.Error);
+                                        File.WriteAllText($"{uuid}.xml", root.InnerXml);
+                                    }
+                                    break;
+                                #endregion
                                 #region Test Question
                                 case "vim-test":
                                     try {
                                         var select = sus?.FirstChild;
-                                        foreach (XmlNode item in @select["vim-test-answers"]?.ChildNodes!) {
-                                            ans.Add($"Тест: {item.InnerText}");
-                                            break;
-                                        }
+                                        ans.Add($"Тест: {select["vim-test-answers"]?.ChildNodes?[0].InnerText}");
                                     } catch (Exception ex) {
                                         MessageBox.Show("Не удалось решить тест.\n" +
                                                         $"UUID: {uuid}\nСообщите об этом разработчику.",
@@ -144,6 +165,26 @@ namespace TheAirBlow.Skysmart.Windows
                                     }
                                     break;
                                 #endregion
+                                #region Text Drag&Drop Question
+                                case "vim-dnd-text":
+                                    try {
+                                        var drags = sus["vim-dnd-text-drags"];
+                                        var nodes = sus.SelectNodes("//vim-dnd-text-drop");
+                                        for (var h = 0; h < nodes.Count; h++) {
+                                            var item = nodes[h];
+                                            var ids = item.Attributes?["drag-ids"].InnerText.Split(',');
+                                            ans.Add($"Перетащи {drags?.SelectSingleNode($"//*[@answer-id='{ids[0]}']").InnerText}" +
+                                                    $" в \"{item.ParentNode.InnerText}\"");
+                                        }
+                                    } catch (Exception ex) {
+                                        MessageBox.Show("Не удалось решить Drag&Drop задание.\n" +
+                                                        $"UUID: {uuid}\nСообщите об этом разработчику.",
+                                            "Ошибка во время решения!", MessageBoxButtons.OK,
+                                            MessageBoxIcon.Error);
+                                        File.WriteAllText($"{uuid}.xml", root.InnerXml);
+                                    }
+                                    break;
+                                #endregion
                             }
                         }
 
@@ -165,7 +206,7 @@ namespace TheAirBlow.Skysmart.Windows
                     Invoke(() => {
                         panel1.Enabled = true;
                         panel1.Visible = true;
-                        label2.Text = $"Ошибка во время решения, ожидание команды...";
+                        label2.Text = $"Ошибка во время решения, ожидание команд...";
                         progressBar1.Style = ProgressBarStyle.Marquee;
                     });
                     MessageBox.Show("Не удалось решить задание.\nПроверьте код, " +
@@ -215,12 +256,11 @@ namespace TheAirBlow.Skysmart.Windows
                 var info = WebHelper.GetInformation();
                 label3.Text = $"Добро пожаловать, {info.Name} {info.Surname}!";
             } catch {
-                MessageBox.Show("Не удалось войти в аккаунт, используя токен.\n" +
-                                "Откройте программу снова, чтобы войти.", 
+                MessageBox.Show("Не удалось войти в аккаунт, используя токен.", 
                     "Ошибка во время входа!", MessageBoxButtons.OK, 
                     MessageBoxIcon.Error);
-                File.WriteAllText("token.txt", "");
-                Environment.Exit(0);
+                new Login().Show();
+                Hide();
             }
             
         }

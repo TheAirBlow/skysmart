@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Net;
+using System.Text.RegularExpressions;
 using System.Xml;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -126,8 +127,43 @@ namespace TheAirBlow.Skysmart.Library
             var answer = client.DownloadString(Xml + uuid);
             var json = JsonConvert.DeserializeObject<ExerciseXml>(answer);
             var content = json.Content;
+            // Replace all of the shit and make it readable
+            content = content.Replace("~", "");
             content = content.Replace("\r", "");
             content = content.Replace("\n", "");
+            content = content.Replace("\\gt", ">");
+            content = content.Replace("\\lt", "<");
+            content = content.Replace("\\pm", "⊥");
+            content = content.Replace("\\perp", "");
+            content = content.Replace("\\larr", "←");
+            content = content.Replace("\\leftarrow", "←");
+            content = content.Replace("\\le", "≤");
+            content = content.Replace("\\ge", "≥");
+            content = content.Replace("\\begin{cases}", "{");
+            content = content.Replace("\\end{cases}", "}");
+            content = content.Replace("\\cdot", " x");
+            content = content.Replace("\\rarr", "→");
+            content = content.Replace("\\rightarrow", "→");
+            content = content.Replace("\\pi", "π");
+            content = content.Replace("\\infty", "∞");
+            
+            foreach (var c in new[] { "^", "+", "=", ":" })
+                content = content.Replace($"{c}", $" {c} ");
+
+            foreach (Match i in new Regex("mathrm{(.*?)}").Matches(content))
+                content = content.Replace("\\" + i.Value, Regex.Replace(
+                    i.Value, "(?:mathrm{)(.*?)(?:})", "$1"));
+            
+            foreach (Match i in new Regex("dfrac{(.*?)}{(.*?)}").Matches(content))
+                content = content.Replace("\\" + i.Value, Regex.Replace(
+                    i.Value, "(?:dfrac{)(.*?)(?:}{)(.*?)(?:})",
+                    "$1 / $2"));
+            
+            foreach (Match i in new Regex("sqrt{(.*?)}").Matches(content))
+                content = content.Replace("\\" + i.Value, Regex.Replace(
+                    i.Value, "(?:sqrt){(.*?)(?:})", "√$1"));
+            
+            // Return the XML document
             var doc = new XmlDocument();
             doc.LoadXml(content);
             json.XmlContent = doc;
