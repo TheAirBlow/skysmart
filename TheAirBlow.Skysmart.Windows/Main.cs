@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
 using System.Xml;
@@ -307,6 +305,9 @@ namespace TheAirBlow.Skysmart.Windows
             button3.Enabled = comboBox1.SelectedIndex - 1 != -1;
             button4.Enabled = comboBox1.SelectedIndex + 1 != comboBox1.Items.Count;
         }
+        
+        private void OnClose(object sender, EventArgs e)
+            => Environment.Exit(0);
 
         /// <summary>
         /// Verify bearer token
@@ -323,7 +324,7 @@ namespace TheAirBlow.Skysmart.Windows
                 comboBox1.SelectedIndex = 0;
                 _comboBoxItems.Clear();
             };
-            Closed += (_, _) => Environment.Exit(0);
+            Closed += OnClose;
             timer1.Start();
 
             try {
@@ -334,7 +335,8 @@ namespace TheAirBlow.Skysmart.Windows
                     "Ошибка во время входа!", MessageBoxButtons.OK, 
                     MessageBoxIcon.Error);
                 new Login().Show();
-                Hide();
+                Closed -= OnClose;
+                Close();
             }
             
         }

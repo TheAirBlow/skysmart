@@ -32,7 +32,8 @@ namespace TheAirBlow.Skysmart.Windows
                     WebHelper.Authenticate(login, pass);
                     File.WriteAllText("token.txt", WebHelper.Token);
                     new Main().Show();
-                    Hide();
+                    Closed -= button2_Click;
+                    Close();
                 } catch (WebException ex) {
                     if (ex.Status == WebExceptionStatus.ProtocolError)
                         MessageBox.Show("Неправильный логин или пароль." +
@@ -55,6 +56,6 @@ namespace TheAirBlow.Skysmart.Windows
         }
 
         private void Login_Load(object sender, EventArgs e)
-            => Closed += (_, _) => Environment.Exit(0);
+            => Closed += button2_Click;
     }
 }
